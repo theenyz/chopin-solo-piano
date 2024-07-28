@@ -18,7 +18,6 @@
 
 
 <script>
-
 var margin = {top: 10, right: 30, bottom: 20, left: 50},
     width = 900 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
@@ -32,71 +31,105 @@ var svg = d3.select("#years")
           "translate(" + margin.left + "," + margin.top + ")");
 
 d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.csv", function(data) {
-    // opus,type,title,key,compositionYear,publicationYear
-    // var parameters = data.columns
-    var type = d3.map(data, function(d){return(d.type)}).keys()
-    var compositionYears = d3.map(data, function(d){return(d.compositionYear)}).keys().sort()
+  // Process data
+  var nestedData = d3.nest()
+    .key(function(d) { return d.compositionYear; })
+    .key(function(d) { return d.type; })
+    .entries(data);
 
-    var compositionCount = d3.nest()
-      .key(function(d) { return d.compositionYear; })
-      .rollup(function(v) { return v.length; })
-      .entries(data);
+  var years = nestedData.map(function(d) { return d.key; });
 
-    // Sort by year
-    compositionCount.sort(function(a, b) { return d3.ascending(a.key, b.key); });
+  // Prepare the stacked data
+  var stackedData = [];
+  nestedData.forEach(function(year) {
+    var yearData = { year: year.key };
+    year.values.forEach(function(type) {
+      yearData[type.key] = type.values.length;
+    });
+    stackedData.push(yearData);
+  });
 
-    console.log(compositionCount)
+  // List of subgroups (types)
+  var subgroups = data.map(function(d) { return d.type; }).filter((value, index, self) => self.indexOf(value) === index);
 
-    // Add X axis
-    var x = d3.scaleBand()
-        .domain(compositionCount.map(function(d) { return d.key; }))
-        .range([0, width])
-        .padding([0.2])
-    svg.append("g")
-        .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x).tickSizeOuter(0));
+  // X axis
+  var x = d3.scaleBand()
+    .domain(years)
+    .range([0, width])
+    .padding([0.2]);
+  svg.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+    // .selectAll("text")
+    //   .attr("transform", "rotate(-45)")
+    //   .style("text-anchor", "end");
 
-    // Add Y axis
-    var y = d3.scaleLinear()
-        .domain([0, d3.max(compositionCount, function(d) { return d.value; })])
-        .range([ height, 0 ]);
-    svg.append("g")
-        .call(d3.axisLeft(y));
+  // Y axis
+  var y = d3.scaleLinear()
+    .domain([0, d3.max(stackedData, function(d) {
+      return d3.sum(subgroups.map(function(key) { return d[key] || 0; }));
+    })])
+    .nice()
+    .range([height, 0]);
+  svg.append("g")
+    .call(d3.axisLeft(y));
 
-    // color palette = one color per type
-    var color = d3.scaleOrdinal()
-        .domain(type)
-        // .range(['#C7EFCF','#FE5F55','#EEF5DB'])
+  // Color palette
+  var color = d3.scaleOrdinal(d3.schemeCategory10).domain(subgroups);
 
-    var stackedData = d3.stack()
-        .keys(compositionYears)
-        (data)
+  // Stack the data
+  var stackedSeries = d3.stack()
+    .keys(subgroups)
+    (stackedData);
 
-    svg.append("g")
-        .selectAll("g")
-        // Enter in the stack data = loop key per key = group per group
-        .data(stackedData)
-        .enter().append("g")
-          .attr("fill", "#69b3a2") // function(d) { return color(d.key); })
-          .selectAll("rect")
-          // enter a second time = loop subgroup per subgroup to add all rectangles
-          .data(function(d) { return d; })
-          .enter().append("rect")
-            .attr("x", function(d) { return x(d.data.type); })
-            .attr("y", function(d) { return y(d[1]); })
-            .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-            .attr("width",x.bandwidth())
-            .attr("stroke", "grey")
+  // ----------------
+  // Create a tooltip
+  // ----------------
+  var tooltip = d3.select("#years")
+    .append("div")
+    .style("opacity", 0)
+    .attr("class", "tooltip")
+    .style("background-color", "white")
+    .style("border", "solid")
+    .style("border-width", "1px")
+    .style("border-radius", "5px")
+    .style("padding", "10px")
 
+  // Three function that change the tooltip when user hover / move / leave a cell
+  var mouseover = function(d) {
+    var subgroupName = d3.select(this.parentNode).datum().key;
+    var subgroupValue = d.data[subgroupName];
+    tooltip
+        .html("subgroup: " + subgroupName + "<br>" + "Value: " + subgroupValue)
+        .style("opacity", 1)
+  }
+  var mousemove = function(d) {
+    tooltip
+      .style("left", (d3.mouse(this)[0]+90) + "px") // It is important to put the +90: other wise the tooltip is exactly where the point is an it creates a weird effect
+      .style("top", (d3.mouse(this)[1]) + "px")
+  }
+  var mouseleave = function(d) {
+    tooltip
+      .style("opacity", 0)
+  }
 
-
-    console.log(type)
-    console.log(compositionYears)
+  // Show the bars
+  svg.append("g")
+    .selectAll("g")
+    .data(stackedSeries)
+    .enter().append("g")
+      .attr("fill", function(d) { return color(d.key); })
+    .selectAll("rect")
+    .data(function(d) { return d; })
+    .enter().append("rect")
+      .attr("x", function(d) { return x(d.data.year); })
+      .attr("y", function(d) { return y(d[1]); })
+      .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+      .attr("width", x.bandwidth())
+    .on("mouseover", mouseover)
+    .on("mousemove", mousemove)
+    .on("mouseleave", mouseleave)
 });
-
 </script>
-
-
-
 
 </html>
