@@ -1,5 +1,8 @@
 <!DOCTYPE html>
-<script src="https://d3js.org/d3.v3.min.js"></script>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<!-- <script src="script.js"></script> -->
 <html>
 
 <head>
@@ -8,8 +11,92 @@
 
 <body>
     <p> testfa sdf </p>
-    <script src="script.js"></script>
+    <div id="years"></div>
     <h3> header 3 </h3>
+    <!-- <div id="my_dataviz"></div> -->
 </body>
+
+
+<script>
+
+var margin = {top: 10, right: 30, bottom: 20, left: 50},
+    width = 900 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+var svg = d3.select("#years")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.csv", function(data) {
+    // opus,type,title,key,compositionYear,publicationYear
+    // var parameters = data.columns
+    var type = d3.map(data, function(d){return(d.type)}).keys()
+    var compositionYears = d3.map(data, function(d){return(d.compositionYear)}).keys().sort()
+
+    var compositionCount = d3.nest()
+      .key(function(d) { return d.compositionYear; })
+      .rollup(function(v) { return v.length; })
+      .entries(data);
+
+    // Sort by year
+    compositionCount.sort(function(a, b) { return d3.ascending(a.key, b.key); });
+
+    console.log(compositionCount)
+
+    // Add X axis
+    var x = d3.scaleBand()
+        .domain(compositionCount.map(function(d) { return d.key; }))
+        .range([0, width])
+        .padding([0.2])
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).tickSizeOuter(0));
+
+    // Add Y axis
+    var y = d3.scaleLinear()
+        .domain([0, d3.max(compositionCount, function(d) { return d.value; })])
+        .range([ height, 0 ]);
+    svg.append("g")
+        .call(d3.axisLeft(y));
+
+    // color palette = one color per type
+    var color = d3.scaleOrdinal()
+        .domain(type)
+        // .range(['#C7EFCF','#FE5F55','#EEF5DB'])
+
+    var stackedData = d3.stack()
+        .keys(compositionYears)
+        (data)
+
+    svg.append("g")
+        .selectAll("g")
+        // Enter in the stack data = loop key per key = group per group
+        .data(stackedData)
+        .enter().append("g")
+          .attr("fill", "#69b3a2") // function(d) { return color(d.key); })
+          .selectAll("rect")
+          // enter a second time = loop subgroup per subgroup to add all rectangles
+          .data(function(d) { return d; })
+          .enter().append("rect")
+            .attr("x", function(d) { return x(d.data.type); })
+            .attr("y", function(d) { return y(d[1]); })
+            .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+            .attr("width",x.bandwidth())
+            .attr("stroke", "grey")
+
+
+
+    console.log(type)
+    console.log(compositionYears)
+});
+
+</script>
+
+
+
 
 </html>
