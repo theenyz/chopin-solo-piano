@@ -2,7 +2,7 @@
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v4.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-<!-- <script src="script.js"></script> -->
+<script src="navigation.js"></script>
 <html>
 
 <style>
@@ -17,134 +17,26 @@ h1 {
 
 <body>
     <h1>Chopin's solo piano works</h1>
-    <button id="navigateButton">Go to Another Page</button>
-    <div id="years"></div>
-    <!-- <div id="my_dataviz"></div> -->
+
+    <!-- navigation -->
+    <button id="b_index">home</button>
+    <button id="b_scene1">compositions by the number</button>
+    <button id="b_scene2">compositions per year</button>
+    
+    <!-- description -->
 </body>
 
-
 <script>
- // JavaScript function to navigate to another page
-document.getElementById("navigateButton").onclick = function () {
-    window.location.href = "stacked_barplot.html"; // Replace with the actual URL of the page you want to navigate to
+// navigation
+document.getElementById("b_index").onclick = function () {
+  window.location.href = "index.html";
 };
-
-
-var margin = {top: 10, right: 30, bottom: 20, left: 50},
-    width = 900 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
-
-var svg = d3.select("#years")
-  .append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
-
-d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.csv", function(data) {
-  // Process data
-  var nestedData = d3.nest()
-    .key(function(d) { return d.compositionYear; })
-    .key(function(d) { return d.type; })
-    .entries(data);
-
-  var years = nestedData.map(function(d) { return d.key; });
-
-  // Prepare the stacked data
-  var stackedData = [];
-  nestedData.forEach(function(year) {
-    var yearData = { year: year.key };
-    year.values.forEach(function(type) {
-      yearData[type.key] = type.values.length;
-    });
-    stackedData.push(yearData);
-  });
-
-  // List of subgroups (types)
-  var subgroups = data.map(function(d) { return d.type; }).filter((value, index, self) => self.indexOf(value) === index);
-
-  // X axis
-  var x = d3.scaleBand()
-    .domain(years)
-    .range([0, width])
-    .padding([0.2]);
-  svg.append("g")
-    .attr("transform", "translate(0," + height + ")")
-    .call(d3.axisBottom(x).tickSizeOuter(0))
-
-  // Y axis
-  var y = d3.scaleLinear()
-    .domain([0, d3.max(stackedData, function(d) {
-      return d3.sum(subgroups.map(function(key) { return d[key] || 0; }));
-    })])
-    .nice()
-    .range([height, 0]);
-  svg.append("g")
-    .call(d3.axisLeft(y));
-
-  // Color palette
-  var color = d3.scaleOrdinal()
-    .domain(subgroups)
-    .range([
-      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
-      "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7"
-    ]);
-
-  // Stack the data
-  var stackedSeries = d3.stack()
-    .keys(subgroups)
-    (stackedData);
-
-  // ----------------
-  // Create a tooltip
-  // ----------------
-  var tooltip = d3.select("#years")
-    .append("div")
-    .style("opacity", 0)
-    .attr("class", "tooltip")
-    .style("background-color", "white")
-    .style("border", "solid")
-    .style("border-width", "1px")
-    .style("border-radius", "5px")
-    .style("padding", "10px")
-    .style("position", "absolute")
-
-  // Three function that change the tooltip when user hover / move / leave a cell
-  var mouseover = function(d) {
-    var subgroupName = d3.select(this.parentNode).datum().key;
-    var subgroupValue = d.data[subgroupName];
-    tooltip
-        .html("Type: " + subgroupName + "<br>" + "Composed: " + subgroupValue)
-        .style("opacity", 1)
-  }
-  var mousemove = function(d) {
-    tooltip
-      .style("left", (d3.mouse(this)[0]+90) + "px") // It is important to put the +90: other wise the tooltip is exactly where the point is an it creates a weird effect
-      .style("top", (d3.mouse(this)[1]) + "px")
-  }
-  var mouseleave = function(d) {
-    tooltip
-      .style("opacity", 0)
-  }
-
-  // Show the bars
-  svg.append("g")
-    .selectAll("g")
-    .data(stackedSeries)
-    .enter().append("g")
-      .attr("fill", function(d) { return color(d.key); })
-    .selectAll("rect")
-    .data(function(d) { return d; })
-    .enter().append("rect")
-      .attr("x", function(d) { return x(d.data.year); })
-      .attr("y", function(d) { return y(d[1]); })
-      .attr("height", function(d) { return y(d[0]) - y(d[1]); })
-      .attr("width", x.bandwidth())
-    .on("mouseover", mouseover)
-    .on("mousemove", mousemove)
-    .on("mouseleave", mouseleave)
-});
+document.getElementById("b_scene1").onclick = function () {
+  window.location.href = "scene1.html";
+};
+document.getElementById("b_scene2").onclick = function () {
+  window.location.href = "scene2.html"; 
+};
 </script>
 
 </html>
