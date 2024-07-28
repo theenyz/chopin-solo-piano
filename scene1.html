@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<html>
+
+<style>
+h1 {
+  text-align: center;
+}
+</style>
+
+<head>
+    <title>Chopin's solo piano works</title>
+</head>
+
+<body>
+    <h1>Compositions by the number</h1>
+
+    <!-- navigation -->
+    <button id="b_index">home</button>
+    <button id="b_scene1">compositions by the number</button>
+    <button id="b_scene2">compositions per year</button>
+
+    <!-- scene 1 -->
+    <div id="scene1"></div>
+
+    <!-- description -->
+</body>
+
+<script>
+// navigation
+document.getElementById("b_index").onclick = function () {
+  window.location.href = "index.html";
+};
+document.getElementById("b_scene1").onclick = function () {
+  window.location.href = "scene1.html";
+};
+document.getElementById("b_scene2").onclick = function () {
+  window.location.href = "scene2.html"; 
+};
+
+
+
+// scene 1
+// set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 20, left: 60},
+    width = 600 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+var svg = d3.select("#scene1")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.csv", function(data) {
+    // Process data to count the number of each type of composition
+    var typeCount = d3.nest()
+        .key(function (d) { return d.type; })
+        .rollup(function (v) { return v.length; })
+        .entries(data);
+
+    typeCount = typeCount.map(function (d) { return { type: d.key, count: d.value }; });
+
+    // Color scale
+    var color = d3.scaleOrdinal()
+        .domain(typeCount.map(function (d) { return d.type; }))
+        .range(d3.schemeCategory20);
+
+    // Sort data by count
+    typeCount.sort(function (a, b) { return b.count - a.count; });
+
+    // Y axis
+    var y = d3.scaleBand()
+        .domain(typeCount.map(function (d) { return d.type; }))
+        .range([0, height])
+        .padding(0.1);
+    svg.append("g")
+        .call(d3.axisLeft(y));
+
+    // X axis
+    var x = d3.scaleLinear()
+        .domain([0, d3.max(typeCount, function (d) { return d.count; })])
+        .range([0, width]);
+    svg.append("g")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x).ticks(10));
+
+    // Show the bars
+    svg.selectAll(".bar")
+        .data(typeCount)
+        .enter().append("rect")
+        .attr("class", "bar")
+        .attr("y", function (d) { return y(d.type); })
+        .attr("x", 1)
+        .attr("height", y.bandwidth())
+        .attr("width", function (d) { return x(d.count); })
+        .attr("fill", function (d) { return color(d.type); })
+        .on("mouseover", function (event, d) {
+            d3.select("#tooltip")
+                .style("opacity", 1)
+                .html("Type: " + d.type + "<br>" + "Count: " + d.count);
+        })
+        .on("mousemove", function (event) {
+            var [mouseX, mouseY] = d3.pointer(event);
+            d3.select("#tooltip")
+                .style("left", (mouseX + 10) + "px")
+                .style("top", (mouseY + 10) + "px");
+        })
+        .on("mouseout", function () {
+            d3.select("#tooltip")
+                .style("opacity", 0);
+        });
+});
+
+
+</script>
+
+</html>

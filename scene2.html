@@ -2,7 +2,6 @@
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v4.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-<script src="navigation.js"></script>
 <html>
 
 <style>
@@ -23,12 +22,11 @@ h1 {
     <button id="b_scene1">compositions by the number</button>
     <button id="b_scene2">compositions per year</button>
 
-    <!-- description -->
-
     <!-- scene 2 -->
     <div id="scene2"></div>
-</body>
 
+    <!-- description -->
+</body>
 
 <script>
 // navigation
@@ -41,6 +39,8 @@ document.getElementById("b_scene1").onclick = function () {
 document.getElementById("b_scene2").onclick = function () {
   window.location.href = "scene2.html"; 
 };
+
+
 
 // scene 2
 var margin = {top: 10, right: 30, bottom: 20, left: 50},
@@ -99,10 +99,11 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
   // Color palette
   var color = d3.scaleOrdinal()
     .domain(subgroups)
-    .range([
-      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
-      "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7"
-    ]);
+    .range(d3.schemeCategory20);
+    // .range([
+    //   "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+    //   "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7"
+    // ]);
 
   // Stack the data
   var stackedSeries = d3.stack()
@@ -128,7 +129,7 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
     var subgroupName = d3.select(this.parentNode).datum().key;
     var subgroupValue = d.data[subgroupName];
     tooltip
-        .html("Type: " + subgroupName + "<br>" + "Composed: " + subgroupValue)
+        .html("Type: " + subgroupName + "<br>" + "Number composed: " + subgroupValue)
         .style("opacity", 1)
   }
   var mousemove = function(d) {
@@ -140,6 +141,34 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
     tooltip
       .style("opacity", 0)
   }
+
+  // legend
+  // Add one dot in the legend for each name.
+  var leg_x_dot = 750
+  var leg_x_lab = leg_x_dot + 10
+  var leg_y = 5
+  var leg_y_dot = 15
+
+  svg.selectAll("mydots")
+    .data(subgroups)
+    .enter()
+    .append("circle")
+      .attr("cx", leg_x_dot)
+      .attr("cy", function(d,i){ return leg_y + i*leg_y_dot - 4}) 
+      .attr("r", 3)
+      .style("fill", function(d){ return color(d)})
+
+  // Add one dot in the legend for each name.
+  svg.selectAll("mylabels")
+    .data(subgroups)
+    .enter()
+    .append("text")
+      .attr("x", leg_x_lab)
+      .attr("y", function(d,i){ return leg_y + i*leg_y_dot})
+      .style("fill", function(d){ return color(d)})
+      .text(function(d){ return d})
+      .attr("text-anchor", "left")
+      .style("alignment-baseline", "middle")
 
   // Show the bars
   svg.append("g")
