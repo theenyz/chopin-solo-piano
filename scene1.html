@@ -8,6 +8,9 @@
 h1 {
   text-align: center;
 }
+div {
+  text-align: center;
+}
 #tooltip {
     position: absolute;
     opacity: 0;
@@ -28,16 +31,25 @@ h1 {
     <h1>Compositions by the number</h1>
 
     <!-- navigation -->
-    <button id="b_index">home</button>
-    <button id="b_scene1">compositions by the number</button>
-    <button id="b_scene2">compositions by the year</button>
-    <button id="b_scene3">compositions by the key</button>
-    <button id="b_end">end</button>
+    <div> 
+        <button id="b_index">home</button>
+        <button id="b_scene1">compositions by the number</button>
+        <button id="b_scene2">compositions by the year</button>
+        <button id="b_scene3">compositions by the key</button>
+        <button id="b_end">end</button>
+    </div>
 
     <!-- scene 1 -->
     <div id="scene1"></div>
 
     <!-- description -->
+    <p>
+        The first thought is to think about the most common type of composition Chopin created in his composing career.
+        The horizontal bar plot above ranks all of these different types of compositions by its count.
+        We can see that <b>mazurkas are the most commonly composed type of composition</b>.
+        <br><br>
+        But what if we consider the factor of time and take a look at Chopin's composition history timeline?
+    </p>
 </body>
 
 <script>

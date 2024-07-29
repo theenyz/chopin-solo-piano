@@ -8,6 +8,9 @@
 h1 {
   text-align: center;
 }
+div {
+  text-align: center;
+}
 .node {
     border: solid 1px white;
     font: 10px sans-serif;
@@ -40,17 +43,29 @@ h1 {
     <h1>Compositions by the key</h1>
 
     <!-- navigation -->
-    <button id="b_index">home</button>
-    <button id="b_scene1">compositions by the number</button>
-    <button id="b_scene2">compositions by the year</button>
-    <button id="b_scene3">compositions by the key</button>
-    <button id="b_end">end</button>
+    <div> 
+        <button id="b_index">home</button>
+        <button id="b_scene1">compositions by the number</button>
+        <button id="b_scene2">compositions by the year</button>
+        <button id="b_scene3">compositions by the key</button>
+        <button id="b_end">end</button>
+    </div>
 
     <!-- scene 3 -->
     <div id="scene3"></div>
     <div id="tooltip"></div>
 
     <!-- description -->
+    <p>
+        In this treemap, the compositions are colored by their major/minor mode.
+        If the piece is in a major key, it is in the blue-colored section.
+        If the piece is in a minor key, it is in the orange-colored section.
+        <br><br>
+        From a glance, it seems that there is no major bias for either major or minor.
+        Additionally, Chopin has a tendency to leans towards creating pieces in A-flat major, but nothing significant outside of that.
+        <br><br>
+        Thus, <b>perhaps major/minor mode and key isn't a significant factor</b> in Chopin's compositional behavior.
+    </p>
 </body>
 
 <script>

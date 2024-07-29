@@ -9,6 +9,9 @@
 h1 {
   text-align: center;
 }
+div {
+  text-align: center;
+}
 </style>
 
 <head>
@@ -19,16 +22,28 @@ h1 {
     <h1>Compositions by the year</h1>
 
     <!-- navigation -->
-    <button id="b_index">home</button>
-    <button id="b_scene1">compositions by the number</button>
-    <button id="b_scene2">compositions by the year</button>
-    <button id="b_scene3">compositions by the key</button>
-    <button id="b_end">end</button>
+    <div> 
+      <button id="b_index">home</button>
+      <button id="b_scene1">compositions by the number</button>
+      <button id="b_scene2">compositions by the year</button>
+      <button id="b_scene3">compositions by the key</button>
+      <button id="b_end">end</button>
+    </div>
 
     <!-- scene 2 -->
     <div id="scene2"></div>
 
     <!-- description -->
+    <p>
+      This stacked bar plot timeline displays compositions created per year. 
+      The eye is first drawn to big bars, such as the tan block representing the set of 24 preludes composed between 1838-1839.
+      However, preludes are only composed twice, once betewen 1838-1839 with the big set, and only once more, with 1 in 1841. It is not frequently created.
+      <br><br>
+      If we focus on the timeline, we can note that <b>there are a few other composition types that are more frequently composed over the years,
+        most notably the mazurkas (in peach) alongside the nocturnes (in dark green)</b>, though the nocturnes in less frequency than the mazurkas.
+      <br><br>
+      Now, let's dive a bit deeper to look at Chopin's preferences in composing, notably the major/minor mode and the key of the pieces. 
+    </p>
 </body>
 
 <script>
@@ -69,6 +84,11 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
     .key(function(d) { return d.type; })
     .entries(data);
 
+  // Sort nestedData by year
+  nestedData.sort(function(a, b) {
+    return parseFloat(a.key) - parseFloat(b.key);
+  });
+
   var years = nestedData.map(function(d) { return d.key; });
 
   // Prepare the stacked data
@@ -79,6 +99,11 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
       yearData[type.key] = type.values.length;
     });
     stackedData.push(yearData);
+  });
+
+  // Sort stackedData by year
+  stackedData.sort(function(a, b) {
+    return parseFloat(a.year) - parseFloat(b.year);
   });
 
   // List of subgroups (types)

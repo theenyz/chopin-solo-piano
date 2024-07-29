@@ -8,6 +8,9 @@
 h1 {
   text-align: center;
 }
+div {
+  text-align: center;
+}
 </style>
 
 <head>
@@ -18,13 +21,37 @@ h1 {
     <h1>Wrapping it up</h1>
 
     <!-- navigation -->
-    <button id="b_index">home</button>
-    <button id="b_scene1">compositions by the number</button>
-    <button id="b_scene2">compositions by the year</button>
-    <button id="b_scene3">compositions by the key</button>
-    <button id="b_end">end</button>
+    <div> 
+        <button id="b_index">home</button>
+        <button id="b_scene1">compositions by the number</button>
+        <button id="b_scene2">compositions by the year</button>
+        <button id="b_scene3">compositions by the key</button>
+        <button id="b_end">end</button>
+    </div>
     
     <!-- description -->
+    <div style="text-align: center;">
+        <br>
+        <img src="https://www.cobbecollection.co.uk/wp-content/themes/twentyeleven-child/images/33_chopin_pleyelb.jpg"
+        width="500" height="275"></img>
+    </div>
+    <p>
+        Overall, it can be noted that what is consistent is that <b>Chopin has always continuously created mazurkas throughout his composing career</b>.
+        From the time he started composing, the longest time stretch Chopin went without composing a mazurka is 4 years.
+        <br><br>
+        A mazurka is a kind of Polish folk dance with a rich cultural and historical background. Chopin moved to Paris, France early in his music career.
+        So, this is a sign that although he was not living in his home country, Chopin is proud of his Polish identity.
+        
+        <br><hr><br>
+        Notes:
+        <ul>
+            <li>Data is from <a href="https://www.kaggle.com/datasets/ken1kag/chopin-piano-works">Kaggle</a>.</li>
+            <li>Homepage image is from <a href="https://www.pianobook.io/blog/the-life-story-of-frederic-chopin/">here</a>.</li>
+            <li>Endpage image is from <a href="https://www.cobbecollection.co.uk/collection/33-chopins-own-grand-piano/">here</a>.</li>
+            <li>Used d3, d3-annotations.</li>
+            <li>Referenced <a href="https://d3-graph-gallery.com/">D3.js Graph Gallery</a>.</li>
+        </ul>
+    </p>
 </body>
 
 <script>
