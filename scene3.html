@@ -93,69 +93,78 @@ var treemap = d3.treemap()
 
 d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.csv", function(data) {
 
-// Process data
-var processedData = { name: "root", children: [{ name: "major", children: [] }, { name: "minor", children: [] }] };
-data.forEach(function (d) {
-    var keyType = d.key.includes("major") ? "major" : "minor";
-    var keyName = d.key;
-    var keyGroup = processedData.children.find(child => child.name === keyType);
-    var keyEntry = keyGroup.children.find(entry => entry.name === keyName);
-    if (keyEntry) {
-        keyEntry.size += 1;
-        keyEntry.pieces.push(d.title + " Op. " + d.opus);
-    } else {
-        keyGroup.children.push({ name: keyName, size: 1, pieces: [d.title + " Op. " + d.opus] });
+    // Function to format opus values
+    function formatOpus(opus) {
+        if (opus.includes("-")) {
+            var parts = opus.split("-");
+            return "Op. " + parts[0] + " No. " + parts[1];
+        } else {
+            return "Op. " + opus
+        }
+        return opus;
     }
+
+    // Process data
+    var processedData = { name: "root", children: [{ name: "major", children: [] }, { name: "minor", children: [] }] };
+    data.forEach(function (d) {
+        var keyType = d.key.includes("major") ? "major" : "minor";
+        var keyName = d.key;
+        var keyGroup = processedData.children.find(child => child.name === keyType);
+        var keyEntry = keyGroup.children.find(entry => entry.name === keyName);
+        if (keyEntry) {
+            keyEntry.size += 1;
+            keyEntry.pieces.push(d.title + " " + formatOpus(d.opus));
+        } else {
+            keyGroup.children.push({ name: keyName, size: 1, pieces: [d.title + " " + formatOpus(d.opus)] });
+        }
+    });
+
+    var root = d3.hierarchy(processedData)
+        .sum(function (d) { return d.size; });
+
+    treemap(root);
+
+    var cell = svg.selectAll(".node")
+        .data(root.leaves())
+        .enter().append("g")
+        .attr("class", "node")
+        .attr("transform", function (d) { return "translate(" + d.x0 + "," + d.y0 + ")"; });
+
+    cell.append("rect")
+        .attr("id", function (d) { return d.id; })
+        .attr("width", function (d) { return d.x1 - d.x0; })
+        .attr("height", function (d) { return d.y1 - d.y0; })
+        .attr("fill", function (d) { return color(d.parent.data.name); });
+
+    cell.append("clipPath")
+        .attr("id", function (d) { return "clip-" + d.id; })
+        .append("use")
+        .attr("xlink:href", function (d) { return "#" + d.id; });
+
+    cell.append("text")
+        // .attr("clip-path", function (d) { return "url(#clip-" + d.id + ")"; })
+        .attr("x", function(d) { return 0; })
+        .attr("y", function(d) { return 10; })
+        .attr("text-anchor", "left")
+        .text(function (d) { return d.data.name; });
+
+    cell.on("mouseover", function (d) {
+        var pieces = d.data.pieces ? d.data.pieces.join("<br>") : "No pieces available";
+        d3.select("#tooltip")
+            .style("opacity", 1)
+            .html("Key: " + d.data.name + "<br>Count: " + d.value + "<br>Pieces:<br>" + pieces);
+    })
+    .on("mousemove", function () {
+        d3.select("#tooltip")
+            .style("left", (d3.mouse(this)[0]) + "px")
+            .style("top", (d3.mouse(this)[1]) + "px");
+    })
+    .on("mouseout", function () {
+        d3.select("#tooltip")
+            .style("opacity", 0);
+    });
+
 });
-
-var root = d3.hierarchy(processedData)
-    .sum(function (d) { return d.size; });
-
-treemap(root);
-
-var cell = svg.selectAll(".node")
-    .data(root.leaves())
-    .enter().append("g")
-    .attr("class", "node")
-    .attr("transform", function (d) { return "translate(" + d.x0 + "," + d.y0 + ")"; });
-
-cell.append("rect")
-    .attr("id", function (d) { return d.id; })
-    .attr("width", function (d) { return d.x1 - d.x0; })
-    .attr("height", function (d) { return d.y1 - d.y0; })
-    .attr("fill", function (d) { return color(d.parent.data.name); });
-
-cell.append("clipPath")
-    .attr("id", function (d) { return "clip-" + d.id; })
-    .append("use")
-    .attr("xlink:href", function (d) { return "#" + d.id; });
-
-cell.append("text")
-    .attr("clip-path", function (d) { return "url(#clip-" + d.id + ")"; })
-    .attr("x", 4)
-    .attr("y", 14)
-    .text(function (d) { return d.data.name; });
-
-cell.on("mouseover", function (d) {
-    var pieces = d.data.pieces ? d.data.pieces.join("<br>") : "No pieces available";
-    d3.select("#tooltip")
-        .style("opacity", 1)
-        .html("Key: " + d.data.name + "<br>Count: " + d.value + "<br>Pieces:<br>" + pieces);
-})
-.on("mousemove", function () {
-    var mouseX = d3.mouse(this)[0];
-    var mouseY = d3.mouse(this)[1];
-    d3.select("#tooltip")
-        .style("left", (mouseX + 10) + "px")
-        .style("top", (mouseY + 10) + "px");
-})
-.on("mouseout", function () {
-    d3.select("#tooltip")
-        .style("opacity", 0);
-});
-
-});
-
 
 </script>
 
