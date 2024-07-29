@@ -8,6 +8,16 @@
 h1 {
   text-align: center;
 }
+#tooltip {
+    position: absolute;
+    opacity: 0;
+    background:#fff;
+    border-width: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    pointer-events: none;
+    z-index: 10;
+}
 </style>
 
 <head>
@@ -22,6 +32,7 @@ h1 {
     <button id="b_scene1">compositions by the number</button>
     <button id="b_scene2">compositions by the year</button>
     <button id="b_scene3">compositions by the key</button>
+    <button id="b_end">end</button>
 
     <!-- scene 1 -->
     <div id="scene1"></div>
@@ -42,6 +53,9 @@ document.getElementById("b_scene2").onclick = function () {
 };
 document.getElementById("b_scene3").onclick = function () {
   window.location.href = "scene3.html"; 
+};
+document.getElementById("b_end").onclick = function () {
+  window.location.href = "end.html"; 
 };
 
 
@@ -77,6 +91,8 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
     // Sort data by count
     typeCount.sort(function (a, b) { return b.count - a.count; });
 
+    console.log(typeCount)
+
     // Y axis
     var y = d3.scaleBand()
         .domain(typeCount.map(function (d) { return d.type; }))
@@ -93,31 +109,49 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
         .attr("transform", "translate(0," + height + ")")
         .call(d3.axisBottom(x).ticks(10));
 
+  // ----------------
+  // Create a tooltip
+  // ----------------
+    var tooltip = d3.select("#scene1")
+        .append("div")
+        .style("opacity", 0)
+        .attr("class", "tooltip")
+        .style("background-color", "white")
+        .style("border", "solid")
+        .style("border-width", "1px")
+        .style("border-radius", "5px")
+        .style("padding", "10px")
+        .style("position", "absolute")
+
+    // Three function that change the tooltip when user hover / move / leave a cell
+    var mouseover = function(d) {
+        tooltip
+            .html("Count: " + d.count)
+            .style("opacity", 1)
+    }
+    var mousemove = function(d) {
+        tooltip
+        .style("left", (d3.mouse(this)[0]+90) + "px") // It is important to put the +90: other wise the tooltip is exactly where the point is an it creates a weird effect
+        .style("top", (d3.mouse(this)[1]+45) + "px")
+    }
+    var mouseleave = function(d) {
+        tooltip
+        .style("opacity", 0)
+    }
+
     // Show the bars
     svg.selectAll(".bar")
         .data(typeCount)
         .enter().append("rect")
-        .attr("class", "bar")
-        .attr("y", function (d) { return y(d.type); })
-        .attr("x", 1)
-        .attr("height", y.bandwidth())
-        .attr("width", function (d) { return x(d.count); })
-        .attr("fill", function (d) { return color(d.type); })
-        .on("mouseover", function (event, d) {
-            d3.select("#tooltip")
-                .style("opacity", 1)
-                .html("Type: " + d.type + "<br>" + "Count: " + d.count);
-        })
-        .on("mousemove", function (event) {
-            var [mouseX, mouseY] = d3.pointer(event);
-            d3.select("#tooltip")
-                .style("left", (mouseX + 10) + "px")
-                .style("top", (mouseY + 10) + "px");
-        })
-        .on("mouseout", function () {
-            d3.select("#tooltip")
-                .style("opacity", 0);
-        });
+            .attr("class", "bar")
+            .attr("y", function (d) { return y(d.type); })
+            .attr("x", 1)
+            .attr("height", y.bandwidth())
+            .attr("width", function (d) { return x(d.count); })
+            .attr("fill", function (d) { return color(d.type); })
+        .on("mouseover", mouseover)
+        .on("mousemove", mousemove)
+        .on("mouseleave", mouseleave)
 });
 
 

@@ -2,6 +2,7 @@
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v4.js"></script>
 <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script src="https://rawgit.com/susielu/d3-annotation/master/d3-annotation.min.js"></script>
 <html>
 
 <style>
@@ -22,6 +23,7 @@ h1 {
     <button id="b_scene1">compositions by the number</button>
     <button id="b_scene2">compositions by the year</button>
     <button id="b_scene3">compositions by the key</button>
+    <button id="b_end">end</button>
 
     <!-- scene 2 -->
     <div id="scene2"></div>
@@ -43,8 +45,9 @@ document.getElementById("b_scene2").onclick = function () {
 document.getElementById("b_scene3").onclick = function () {
   window.location.href = "scene3.html"; 
 };
-
-
+document.getElementById("b_end").onclick = function () {
+  window.location.href = "end.html"; 
+};
 
 // scene 2
 var margin = {top: 10, right: 30, bottom: 20, left: 50},
@@ -104,10 +107,6 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
   var color = d3.scaleOrdinal()
     .domain(subgroups)
     .range(d3.schemeCategory20);
-    // .range([
-    //   "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
-    //   "#aec7e8", "#ffbb78", "#98df8a", "#ff9896", "#c5b0d5", "#c49c94", "#f7b6d2", "#c7c7c7"
-    // ]);
 
   // Stack the data
   var stackedSeries = d3.stack()
@@ -133,13 +132,13 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
     var subgroupName = d3.select(this.parentNode).datum().key;
     var subgroupValue = d.data[subgroupName];
     tooltip
-        .html("Type: " + subgroupName + "<br>" + "Number composed: " + subgroupValue)
+        .html("Type: " + subgroupName + "<br>" + "Count: " + subgroupValue)
         .style("opacity", 1)
   }
   var mousemove = function(d) {
     tooltip
-      .style("left", (d3.mouse(this)[0]+90) + "px") // It is important to put the +90: other wise the tooltip is exactly where the point is an it creates a weird effect
-      .style("top", (d3.mouse(this)[1]) + "px")
+      .style("left", (d3.mouse(this)[0]+90) + "px") 
+      .style("top", (d3.mouse(this)[1]+45) + "px")
   }
   var mouseleave = function(d) {
     tooltip
@@ -147,7 +146,6 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
   }
 
   // legend
-  // Add one dot in the legend for each name.
   var leg_x_dot = 750
   var leg_x_lab = leg_x_dot + 10
   var leg_y = 5
@@ -162,7 +160,6 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
       .attr("r", 3)
       .style("fill", function(d){ return color(d)})
 
-  // Add one dot in the legend for each name.
   svg.selectAll("mylabels")
     .data(subgroups)
     .enter()
@@ -190,6 +187,30 @@ d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.cs
     .on("mouseover", mouseover)
     .on("mousemove", mousemove)
     .on("mouseleave", mouseleave)
+
+  // Add annotation
+  const annotations = [
+    {
+      note: {
+        label: "a set of 24 preludes were composed between 1838-1839, however only 1 more was composed in 1841",
+        title: "Preludes",
+        wrap: 200,
+        padding: 10
+      },
+      color: ["#c89c94"],
+      x: x("1838.5") + x.bandwidth() / 2,
+      y: y(10), // Adjust y-coordinate based on your data
+      dy: -50,
+      dx: 50
+    }
+  ]
+
+  const makeAnnotations = d3.annotation()
+    .annotations(annotations)
+  
+  svg.append("g")
+    .attr("class", "annotation-group")
+    .call(makeAnnotations)
 });
 </script>
 
