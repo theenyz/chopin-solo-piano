@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<html>
+
+<style>
+h1 {
+  text-align: center;
+}
+.node {
+    border: solid 1px white;
+    font: 10px sans-serif;
+    line-height: 12px;
+    overflow: hidden;
+    position: absolute;
+    text-indent: 2px;
+}
+.node:hover {
+    opacity: 0.7;
+}
+
+#tooltip {
+    position: absolute;
+    opacity: 0;
+    background:#fff;
+    border-width: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    pointer-events: none;
+    z-index: 10;
+}
+</style>
+
+<head>
+    <title>Chopin's solo piano works</title>
+</head>
+
+<body>
+    <h1>Compositions by the key</h1>
+
+    <!-- navigation -->
+    <button id="b_index">home</button>
+    <button id="b_scene1">compositions by the number</button>
+    <button id="b_scene2">compositions by the year</button>
+    <button id="b_scene3">compositions by the key</button>
+
+    <!-- scene 3 -->
+    <div id="scene3"></div>
+    <div id="tooltip"></div>
+
+    <!-- description -->
+</body>
+
+<script>
+// navigation
+document.getElementById("b_index").onclick = function () {
+  window.location.href = "index.html";
+};
+document.getElementById("b_scene1").onclick = function () {
+  window.location.href = "scene1.html";
+};
+document.getElementById("b_scene2").onclick = function () {
+  window.location.href = "scene2.html"; 
+};
+document.getElementById("b_scene3").onclick = function () {
+  window.location.href = "scene3.html"; 
+};
+
+
+
+// scene 3
+// set the dimensions and margins of the graph
+var margin = { top: 10, right: 10, bottom: 10, left: 10 },
+    width = 800 - margin.left - margin.right,
+    height = 400 - margin.top - margin.bottom;
+
+var svg = d3.select("#scene3")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var fader = function (color) { return d3.interpolateRgb(color, "#fff")(0.2); },
+    color = d3.scaleOrdinal()
+        .domain(["major", "minor"])
+        .range([fader("#1f77b4"), fader("#ff7f0e")]);
+
+var treemap = d3.treemap()
+    .size([width, height])
+    .paddingInner(1);
+
+d3.csv("https://raw.githubusercontent.com/theenyz/chopin-solo-piano/main/data.csv", function(data) {
+
+// Process data
+var processedData = { name: "root", children: [{ name: "major", children: [] }, { name: "minor", children: [] }] };
+data.forEach(function (d) {
+    var keyType = d.key.includes("major") ? "major" : "minor";
+    var keyName = d.key;
+    var keyGroup = processedData.children.find(child => child.name === keyType);
+    var keyEntry = keyGroup.children.find(entry => entry.name === keyName);
+    if (keyEntry) {
+        keyEntry.size += 1;
+        keyEntry.pieces.push(d.title + " Op. " + d.opus);
+    } else {
+        keyGroup.children.push({ name: keyName, size: 1, pieces: [d.title + " Op. " + d.opus] });
+    }
+});
+
+var root = d3.hierarchy(processedData)
+    .sum(function (d) { return d.size; });
+
+treemap(root);
+
+var cell = svg.selectAll(".node")
+    .data(root.leaves())
+    .enter().append("g")
+    .attr("class", "node")
+    .attr("transform", function (d) { return "translate(" + d.x0 + "," + d.y0 + ")"; });
+
+cell.append("rect")
+    .attr("id", function (d) { return d.id; })
+    .attr("width", function (d) { return d.x1 - d.x0; })
+    .attr("height", function (d) { return d.y1 - d.y0; })
+    .attr("fill", function (d) { return color(d.parent.data.name); });
+
+cell.append("clipPath")
+    .attr("id", function (d) { return "clip-" + d.id; })
+    .append("use")
+    .attr("xlink:href", function (d) { return "#" + d.id; });
+
+cell.append("text")
+    .attr("clip-path", function (d) { return "url(#clip-" + d.id + ")"; })
+    .attr("x", 4)
+    .attr("y", 14)
+    .text(function (d) { return d.data.name; });
+
+cell.on("mouseover", function (d) {
+    var pieces = d.data.pieces ? d.data.pieces.join("<br>") : "No pieces available";
+    d3.select("#tooltip")
+        .style("opacity", 1)
+        .html("Key: " + d.data.name + "<br>Count: " + d.value + "<br>Pieces:<br>" + pieces);
+})
+.on("mousemove", function () {
+    var mouseX = d3.mouse(this)[0];
+    var mouseY = d3.mouse(this)[1];
+    d3.select("#tooltip")
+        .style("left", (mouseX + 10) + "px")
+        .style("top", (mouseY + 10) + "px");
+})
+.on("mouseout", function () {
+    d3.select("#tooltip")
+        .style("opacity", 0);
+});
+
+});
+
+
+</script>
+
+</html>
